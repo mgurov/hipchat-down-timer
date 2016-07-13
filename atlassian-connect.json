@@ -1,10 +1,10 @@
 {
   "key": "down-timer",
-  "name": "Hello!",
-  "description": "My very first HipChat add-on",
+  "name": "Timer to Countdown",
+  "description": "Countdowns and timers",
   "vendor": {
-    "name": "Angry Nerds",
-    "url": "https://www.hipchat.com"
+    "name": "Mykola Gurov",
+    "url": "https://github.com/mgurov/"
   },
   "links": {
     "self": "{{localBaseUrl}}/atlassian-connect.json",
@@ -29,19 +29,19 @@
     },
     "webhook": {
       "url": "{{localBaseUrl}}/webhook",
-      "pattern": "^/hello",
+      "pattern": "^/timer",
       "event": "room_message",
-      "name": "Hello!",
+      "name": "Timer-wh!",
       "authentication": "jwt"
     },
     "glance": [
       {
         "name": {
-          "value": "Hello!"
+          "value": "Timer-gl!"
         },
         "queryUrl": "{{localBaseUrl}}/glance",
-        "key": "sample.glance",
-        "target": "sample.sidebar",
+        "key": "down-time.glance",
+        "target": "down-time.sidebar",
         "icon": {
           "url": "{{localBaseUrl}}/img/logo.png",
           "url@2x": "{{localBaseUrl}}/img/logo.png"
@@ -50,9 +50,9 @@
     ],
     "webPanel": [
       {
-        "key": "sample.sidebar",
+        "key": "down-time.sidebar",
         "name": {
-          "value": "Hello Sidebar!"
+          "value": "Down Time Sidebar!"
         },
         "location": "hipchat.sidebar.right",
         "url": "{{localBaseUrl}}/sidebar"
@@ -60,7 +60,7 @@
     ],
     "dialog": [
       {
-        "key": "sample.dialog",
+        "key": "down-time.dialog",
         "title": {
           "value": "Hello Dialog!"
         },
@@ -71,7 +71,7 @@
             "name": {
               "value": "Say Hello!"
             },
-            "key": "sample.dialog.action",
+            "key": "down-time.dialog.action",
             "enabled": true
           },
           "size": {
@@ -83,11 +83,11 @@
     ],
     "action": [
       {
-        "key": "sample.action",
+        "key": "down-time.action",
         "name": {
           "value": "Open Hello Dialog!"
         },
-        "target": "sample.dialog",
+        "target": "down-time.dialog",
         "location": "hipchat.input.action"
       }
     ]
