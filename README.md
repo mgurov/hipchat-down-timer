@@ -1,6 +1,5 @@
-# Atlassian Add-on using Express
-
-Congratulations! You've successfully created a HipChat Connect Add-on using the Express web application framework.
+# hipchat-down-timer
+count-down timer integration for hipchat
 
 ## What's next?
 
