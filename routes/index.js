@@ -152,13 +152,13 @@ module.exports = function (app, addon) {
       var timerName = req.body.item.message.message.replace(/^\/timer\s*/, '');
 
       setTimeout(function() {
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is up!')
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is up!', {format: 'text', color: 'gray', notify: true})
           .then(function (data) {
             console.log('Timer reached', timerName);
           });
       }, 10 * 1000);
 
-      hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is set to be executed soon')
+      hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is set to be executed soon', {format: 'text', color: 'green', notify: false})
         .then(function (data) {
           res.sendStatus(200);
         });
