@@ -147,7 +147,18 @@ module.exports = function (app, addon) {
   app.post('/webhook',
     addon.authenticate(),
     function (req, res) {
-      hipchat.sendMessage(req.clientInfo, req.identity.roomId, 'pong')
+      //console.log('webhook', req.body);
+      //console.log('webhook cmd', req.body.item.message.message);
+      var timerName = req.body.item.message.message.replace(/^\/timer\s*/, '');
+
+      setTimeout(function() {
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is up!')
+          .then(function (data) {
+            console.log('Timer reached', timerName);
+          });
+      }, 10 * 1000);
+
+      hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is set to be executed soon')
         .then(function (data) {
           res.sendStatus(200);
         });
