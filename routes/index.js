@@ -2,6 +2,7 @@ var http = require('request');
 var cors = require('cors');
 var uuid = require('uuid');
 var url = require('url');
+var cmdParser = require('../lib/cmdParser.js');
 
 // This is the heart of your HipChat Connect add-on. For more information,
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
@@ -149,7 +150,8 @@ module.exports = function (app, addon) {
     function (req, res) {
       //console.log('webhook', req.body);
       //console.log('webhook cmd', req.body.item.message.message);
-      var timerName = req.body.item.message.message.replace(/^\/timer\s*/, '');
+      var cmd = cmdParser(req.body.item.message.message);
+      var timerName = cmd.text;
 
       setTimeout(function() {
         hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is up!', {format: 'text', color: 'gray', notify: true})
