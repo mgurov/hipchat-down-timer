@@ -21,7 +21,8 @@
     "request": "^2.72.0",
     "rsvp": "^3.2.1",
     "static-expiry": "^0.0.11",
-    "uuid": "^2.0.2"
+    "uuid": "^2.0.2",
+    "moment-timezone": "^0.5.4"
   },
   "devDependencies": {
     "chai": "^3.5.0",
