@@ -150,22 +150,29 @@ module.exports = function (app, addon) {
     function (req, res) {
       //console.log('webhook', req.body);
       //console.log('webhook cmd', req.body.item.message.message);
-      var cmd = cmdParser(req.body.item.message.message);
-      var timerName = cmd.text;
+      var cmd = cmdParser.parseTimerCommand(req.body.item.message.message);
 
-      setTimeout(function() {
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is up!', {format: 'text', color: 'gray', notify: true})
+      console.log(cmd);
+
+      if (cmd.error) {
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, cmd.error, {format: 'text', color: 'red', notify: false});
+      } else {
+        var timerText = cmd.text;
+
+        setTimeout(function() {
+          hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerText, {format: 'text', color: 'green', notify: true})
+            .then(function (data) {
+              console.log('Timer reached', timerText);
+            });
+        }, cmd.executionTime.getTime() - new Date().getTime());
+
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerText + ' is set to be executed soon', {format: 'text', color: 'green', notify: false})
           .then(function (data) {
-            console.log('Timer reached', timerName);
+            res.sendStatus(200);
           });
-      }, 10 * 1000);
+      }
 
-      hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerName + ' is set to be executed soon', {format: 'text', color: 'green', notify: false})
-        .then(function (data) {
-          res.sendStatus(200);
-        });
-    }
-    );
+    });
 
   // Notify the room that the add-on was installed. To learn more about
   // Connect's install flow, check out:
