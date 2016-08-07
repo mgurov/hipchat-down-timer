@@ -3,6 +3,9 @@ var cors = require('cors');
 var uuid = require('uuid');
 var url = require('url');
 var cmdParser = require('../lib/cmdParser.js');
+var status = {
+  startup: new Date()
+};
 
 // This is the heart of your HipChat Connect add-on. For more information,
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
@@ -12,6 +15,10 @@ module.exports = function (app, addon) {
   // simple healthcheck
   app.get('/healthcheck', function (req, res) {
     res.send('OK');
+  });
+
+  app.get('/status', function(req, res) {
+    res.json(status);
   });
 
   // Root route. This route will serve the `addon.json` unless a homepage URL is
