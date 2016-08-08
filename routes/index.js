@@ -24,20 +24,21 @@ module.exports = function (app, addon) {
 
   function queueMessage(command, callback) {
 
-    function whenAllGood(err) {
+    function onQueued(err) {
       if (err) {
         callback(err);
       } else {
         setTimeout(function () {
-          hipchat.sendMessage.apply(command.args).then(function () { callback(null); });
+          hipchat.sendMessage.apply(command.args).then(function () { /* here remove the event */ });
         }, command.timestamp - new Date().getTime());
+        callback(null);
       }
     }
 
     if (!!command.fromQueue) {
-      redis_client.zadd(REDIS_ZLIST, command.timestamp, JSON.stringify(command.args), whenAllGood);
+      redis_client.zadd(REDIS_ZLIST, command.timestamp, JSON.stringify(command.args), onQueued);
     } else {
-      whenAllGood(null);
+      onQueued(null);
     }
   }
 
