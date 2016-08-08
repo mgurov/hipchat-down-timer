@@ -8,17 +8,59 @@ var status = {
   startup: new Date()
 };
 
+var REDIS_ZLIST = 'down-timer-queue';
+
+var redis = require("redis"),
+  redis_client = redis.createClient(process.env.DATABASE_URL);
+
+redis_client.on("error", function (err) {
+  console.error("Redis client error " + err);
+});
+
 // This is the heart of your HipChat Connect add-on. For more information,
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
 module.exports = function (app, addon) {
   var hipchat = require('../lib/hipchat')(addon);
+
+  function queueMessage(command, callback) {
+
+    function whenAllGood(err) {
+      if (err) {
+        callback(err);
+      } else {
+        setTimeout(function () {
+          hipchat.sendMessage.apply(command.args).then(function () { callback(null); });
+        }, cmd.timestamp - new Date().getTime());
+      }
+    }
+
+    if (!!command.fromQueue) {
+      redis_client.zadd(REDIS_ZLIST, command.timestamp, JSON.stringify(command.args), whenAllGood);
+    } else {
+      whenAllGood(null);
+    }
+  }
+
+
+  redis_client.zrange(REDIS_ZLIST, 0, -1, function (err, result) {
+    if (err) {
+      console.error('Error fetching redis list' + err);
+      return;
+    }
+
+    result.forEach(function(resultEntry){
+      queueMessage(JSON.parse(resultEntry), function() {})
+    });
+
+  });
+
 
   // simple healthcheck
   app.get('/healthcheck', function (req, res) {
     res.send('OK');
   });
 
-  app.get('/status', function(req, res) {
+  app.get('/status', function (req, res) {
     res.json(status);
   });
 
@@ -44,7 +86,7 @@ module.exports = function (app, addon) {
         }
       });
     }
-    );
+  );
 
   // This is an example route that's used by the default for the configuration page
   // https://developer.atlassian.com/hipchat/guide/configuration-page
@@ -59,7 +101,7 @@ module.exports = function (app, addon) {
       //   the roomId
       res.render('config', req.context);
     }
-    );
+  );
 
   // This is an example glance that shows in the sidebar
   // https://developer.atlassian.com/hipchat/guide/glances
@@ -81,7 +123,7 @@ module.exports = function (app, addon) {
         }
       });
     }
-    );
+  );
 
   // This is an example end-point that you can POST to to update the glance info
   // Room update API: https://www.hipchat.com/docs/apiv2/method/room_addon_ui_update
@@ -105,7 +147,7 @@ module.exports = function (app, addon) {
         }
       });
     }
-    );
+  );
 
   // This is an example sidebar controller that can be launched when clicking on the glance.
   // https://developer.atlassian.com/hipchat/guide/dialog-and-sidebar-views/sidebar
@@ -116,7 +158,7 @@ module.exports = function (app, addon) {
         identity: req.identity
       });
     }
-    );
+  );
 
   // This is an example dialog controller that can be launched when clicking on the glance.
   // https://developer.atlassian.com/hipchat/guide/dialog-and-sidebar-views/dialog
@@ -127,7 +169,7 @@ module.exports = function (app, addon) {
         identity: req.identity
       });
     }
-    );
+  );
 
   // Sample endpoint to send a card notification back into the chat room
   // See https://developer.atlassian.com/hipchat/guide/sending-messages
@@ -149,7 +191,7 @@ module.exports = function (app, addon) {
       hipchat.sendMessage(req.clientInfo, req.identity.roomId, msg, opts, card);
       res.json({ status: "ok" });
     }
-    );
+  );
 
   // This is an example route to handle an incoming webhook
   // https://developer.atlassian.com/hipchat/guide/webhooks
@@ -163,21 +205,28 @@ module.exports = function (app, addon) {
       console.log(cmd);
 
       if (cmd.error) {
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, cmd.error, {format: 'text', color: 'red', notify: false});
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, cmd.error, { format: 'text', color: 'red', notify: false });
       } else {
         var timerText = cmd.text;
 
-        setTimeout(function() {
-          hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerText, {format: 'text', color: 'green', notify: true})
-            .then(function (data) {
-              console.log('Timer reached', timerText);
-            });
-        }, cmd.executionTime.getTime() - new Date().getTime());
+        queueMessage(
+          {
+            args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
+            timestamp: cmd.executionTime.getTime(),
+            fromQueue: false
+          },
 
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerText + ' is set to be executed ' + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm'), {format: 'text', color: 'green', notify: false})
-          .then(function (data) {
-            res.sendStatus(200);
-          });
+          function (err) {
+            //TODO err callback and response
+            var text = !!err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
+            var color = !!err ? "red" : "green";
+
+            hipchat.sendMessage(req.clientInfo, req.identity.roomId, text, { format: 'text', color: color, notify: false })
+              .then(function (data) {
+                res.sendStatus(200);
+              });
+          }
+        );
       }
 
     });
