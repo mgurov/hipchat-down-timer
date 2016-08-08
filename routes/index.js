@@ -3,6 +3,7 @@ var cors = require('cors');
 var uuid = require('uuid');
 var url = require('url');
 var cmdParser = require('../lib/cmdParser.js');
+var moment = require('moment-timezone');
 var status = {
   startup: new Date()
 };
@@ -173,7 +174,7 @@ module.exports = function (app, addon) {
             });
         }, cmd.executionTime.getTime() - new Date().getTime());
 
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerText + ' is set to be executed ' + cmd.executionTime, {format: 'text', color: 'green', notify: false})
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, timerText + ' is set to be executed ' + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm'), {format: 'text', color: 'green', notify: false})
           .then(function (data) {
             res.sendStatus(200);
           });
