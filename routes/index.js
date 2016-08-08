@@ -30,7 +30,7 @@ module.exports = function (app, addon) {
       } else {
         setTimeout(function () {
           hipchat.sendMessage.apply(command.args).then(function () { callback(null); });
-        }, cmd.timestamp - new Date().getTime());
+        }, command.timestamp - new Date().getTime());
       }
     }
 
