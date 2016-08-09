@@ -29,8 +29,11 @@ module.exports = function (app, addon) {
         callback(err);
       } else {
         setTimeout(function () {
-          hipchat.sendMessage.apply(command.args).then(function () { /* here remove the event */ });
+          console.log('executing a timeout', hipchat.sendMessage, command.args);
+          var promise = hipchat.sendMessage.apply(hipchat, command.args).then(function () { console.log('message sent OK'); }, function(){ console.log('ERR sending message', arguments); });
+          console.log('executed a timeout', promise);
         }, command.timestamp - new Date().getTime());
+        console.log('setting a timeout');
         callback(null);
       }
     }
