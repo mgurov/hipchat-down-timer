@@ -8,56 +8,66 @@ var status = {
   startup: new Date()
 };
 
-var REDIS_ZLIST = 'down-timer-queue';
+var REDIS_HASH = 'down-timer-s';
+var REDIS_ID_PREFIX = 'down-timer-';
 
-var redis = require("redis"),
-  redis_client = redis.createClient(process.env.DATABASE_URL);
+var redis = require("redis");
+var Promise = require('bluebird');
+Promise.promisifyAll(redis.RedisClient.prototype);
+Promise.promisifyAll(redis.Multi.prototype);
+var redis_client = redis.createClient(process.env.DATABASE_URL);
 
 redis_client.on("error", function (err) {
   console.error("Redis client error " + err);
 });
+
+function nextId() {
+  return redis_client.incrAsync("down-timer-seq");
+}
+
+function persistTimer(command) {
+  return nextId().then(
+    function (nextId) {
+      command.persistedId = nextId;
+      return redis_client.hsetAsync(REDIS_HASH, command.persistedId, JSON.stringify(command));
+    });
+}
+
+function removeTimerPersistence(command) {
+  return redis_client.hdelAsync(REDIS_HASH, command.persistedId);
+}
+
+function loadPersistedTimers() {
+  return redis_client.hvalsAsync(REDIS_HASH)
+    .then(function (persistedTimers) {
+      return persistedTimers.map(JSON.parse);
+    });
+}
+
 
 // This is the heart of your HipChat Connect add-on. For more information,
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
 module.exports = function (app, addon) {
   var hipchat = require('../lib/hipchat')(addon);
 
-  function queueMessage(command, callback) {
-
-    function onQueued(err) {
-      if (err) {
-        callback(err);
-      } else {
-        setTimeout(function () {
-          console.log('executing a timeout', hipchat.sendMessage, command.args);
-          var promise = hipchat.sendMessage.apply(hipchat, command.args).then(function () { console.log('message sent OK'); }, function(){ console.log('ERR sending message', arguments); });
-          console.log('executed a timeout', promise);
-        }, command.timestamp - new Date().getTime());
-        console.log('setting a timeout');
-        callback(null);
-      }
-    }
-
-    if (!!command.fromQueue) {
-      redis_client.zadd(REDIS_ZLIST, command.timestamp, JSON.stringify(command.args), onQueued);
-    } else {
-      onQueued(null);
-    }
+  function queueTimer(command) {
+    setTimeout(function () {
+      removeTimerPersistence(command).then(function () { }, function (err) { console.error('ERR removing persisted timer', err); })
+      hipchat.sendMessage.apply(hipchat, command.args).then(function () { console.log('message sent OK'); }, function () { console.log('ERR sending message', arguments); });
+    }, command.timestamp - new Date().getTime()); //TODO: with delay < very small no point of putting this to the redis
   }
 
+  function registerTimer(command, callback) {
+    return persistTimer(command)
+      .then(function () { queueTimer(command); });
+  }
 
-  redis_client.zrange(REDIS_ZLIST, 0, -1, function (err, result) {
-    if (err) {
-      console.error('Error fetching redis list' + err);
-      return;
-    }
-
-    result.forEach(function(resultEntry){
-      queueMessage(JSON.parse(resultEntry), function() {})
-    });
-
-  });
-
+  loadPersistedTimers().then(
+    function (persistedTimers) {
+      persistedTimers.forEach(queueTimer);
+    },
+    function (error) { console.error('ERR loading timers', error); }
+  );
 
   // simple healthcheck
   app.get('/healthcheck', function (req, res) {
@@ -213,13 +223,13 @@ module.exports = function (app, addon) {
       } else {
         var timerText = cmd.text;
 
-        queueMessage(
+        registerTimer(
           {
             args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
-            timestamp: cmd.executionTime.getTime(),
-            fromQueue: false
-          },
-
+            timestamp: cmd.executionTime.getTime()
+          }
+        ).then(function () { return null; }, function (err) { return err; })
+          .then(
           function (err) {
             //TODO err callback and response
             var text = !!err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
@@ -229,8 +239,17 @@ module.exports = function (app, addon) {
               .then(function (data) {
                 res.sendStatus(200);
               });
+          }, function (err) {
+            var text = !!err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
+            var color = !!err ? "red" : "green";
+
+            hipchat.sendMessage(req.clientInfo, req.identity.roomId, text, { format: 'text', color: color, notify: false })
+              .then(function (data) {
+                res.sendStatus(200);
+              });
           }
-        );
+
+          );
       }
 
     });
