@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
+    "clock": "node bin/clock.js",
     "twatch": "mocha lib/cmdParser_test.js --watch",
     "test": "mocha lib/cmdParser_test.js"
   },
