@@ -4,70 +4,17 @@ var uuid = require('uuid');
 var url = require('url');
 var cmdParser = require('../lib/cmdParser.js');
 var moment = require('moment-timezone');
+var Repository = require('../lib/Repository.js')
 var status = {
   startup: new Date()
 };
 
-var REDIS_HASH = 'down-timer-s';
-var REDIS_ID_PREFIX = 'down-timer-';
-
-var redis = require("redis");
-var Promise = require('bluebird');
-Promise.promisifyAll(redis.RedisClient.prototype);
-Promise.promisifyAll(redis.Multi.prototype);
-var redis_client = redis.createClient(process.env.DATABASE_URL);
-
-redis_client.on("error", function (err) {
-  console.error("Redis client error " + err);
-});
-
-function nextId() {
-  return redis_client.incrAsync("down-timer-seq");
-}
-
-function persistTimer(command) {
-  return nextId().then(
-    function (nextId) {
-      command.persistedId = nextId;
-      return redis_client.hsetAsync(REDIS_HASH, command.persistedId, JSON.stringify(command));
-    });
-}
-
-function removeTimerPersistence(command) {
-  return redis_client.hdelAsync(REDIS_HASH, command.persistedId);
-}
-
-function loadPersistedTimers() {
-  return redis_client.hvalsAsync(REDIS_HASH)
-    .then(function (persistedTimers) {
-      return persistedTimers.map(JSON.parse);
-    });
-}
 
 
 // This is the heart of your HipChat Connect add-on. For more information,
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
 module.exports = function (app, addon) {
   var hipchat = require('../lib/hipchat')(addon);
-
-  function queueTimer(command) {
-    setTimeout(function () {
-      removeTimerPersistence(command).then(function () { }, function (err) { console.error('ERR removing persisted timer', err); })
-      hipchat.sendMessage.apply(hipchat, command.args).then(function () { console.log('message sent OK'); }, function () { console.log('ERR sending message', arguments); });
-    }, command.timestamp - new Date().getTime()); //TODO: with delay < very small no point of putting this to the redis
-  }
-
-  function registerTimer(command, callback) {
-    return persistTimer(command)
-      .then(function () { queueTimer(command); });
-  }
-
-  loadPersistedTimers().then(
-    function (persistedTimers) {
-      persistedTimers.forEach(queueTimer);
-    },
-    function (error) { console.error('ERR loading timers', error); }
-  );
 
   // simple healthcheck
   app.get('/healthcheck', function (req, res) {
@@ -223,7 +170,7 @@ module.exports = function (app, addon) {
       } else {
         var timerText = cmd.text;
 
-        registerTimer(
+        Repository.persistTimer(
           {
             args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
             timestamp: cmd.executionTime.getTime()
