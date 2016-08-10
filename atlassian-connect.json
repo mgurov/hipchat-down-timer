@@ -35,61 +35,11 @@
       "authentication": "jwt"
     },
     "glance": [
-      {
-        "name": {
-          "value": "Timer-gl!"
-        },
-        "queryUrl": "{{localBaseUrl}}/glance",
-        "key": "down-time.glance",
-        "target": "down-time.sidebar",
-        "icon": {
-          "url": "{{localBaseUrl}}/img/logo.png",
-          "url@2x": "{{localBaseUrl}}/img/logo.png"
-        }
-      }
     ],
     "webPanel": [
-      {
-        "key": "down-time.sidebar",
-        "name": {
-          "value": "Down Time Sidebar!"
-        },
-        "location": "hipchat.sidebar.right",
-        "url": "{{localBaseUrl}}/sidebar"
-      }
     ],
     "dialog": [
-      {
-        "key": "down-time.dialog",
-        "title": {
-          "value": "Hello Dialog!"
-        },
-        "url": "{{localBaseUrl}}/dialog",
-        "options": {
-          "style": "normal",
-          "primaryAction": {
-            "name": {
-              "value": "Say Hello!"
-            },
-            "key": "down-time.dialog.action",
-            "enabled": true
-          },
-          "size": {
-            "width": "400px",
-            "height": "200px"
-          }
-        }
-      }
     ],
-    "action": [
-      {
-        "key": "down-time.action",
-        "name": {
-          "value": "Open Hello Dialog!"
-        },
-        "target": "down-time.dialog",
-        "location": "hipchat.input.action"
-      }
-    ]
+    "action": [   ]
   }
 }
