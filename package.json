@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
+    "twatch": "mocha lib/cmdParser_test.js --watch",
     "test": "mocha lib/cmdParser_test.js"
   },
   "dependencies": {
