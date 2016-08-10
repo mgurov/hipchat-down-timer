@@ -119,7 +119,7 @@ module.exports = function (app, addon) {
 
   // This is an example glance that shows in the sidebar
   // https://developer.atlassian.com/hipchat/guide/glances
-  app.get('/glance',
+  app.get('/no-glance',
     cors(),
     addon.authenticate(),
     function (req, res) {
