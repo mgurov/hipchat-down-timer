@@ -4,7 +4,7 @@ var uuid = require('uuid');
 var url = require('url');
 var cmdParser = require('../lib/cmdParser.js');
 var moment = require('moment-timezone');
-var Repository = require('../lib/Repository.js')
+var Repository = require('../lib/repository.js')
 var status = {
   startup: new Date()
 };
