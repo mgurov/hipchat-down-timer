@@ -26,5 +26,3 @@ Repository.loadPersistedTimers().then(function(timers) {
   console.log('Got persisted timers', timers);
   timers.forEach(setTimerTimeout);
 }, console.error);
-
-require('./worker.js'); //we are poor. let's do worker only when needed. 
