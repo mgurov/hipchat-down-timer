@@ -9,8 +9,6 @@ var status = {
   startup: new Date()
 };
 
-
-
 // This is the heart of your HipChat Connect add-on. For more information,
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
 module.exports = function (app, addon) {
