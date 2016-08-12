@@ -203,7 +203,7 @@ module.exports = function (app, addon) {
   // Connect's install flow, check out:
   // https://developer.atlassian.com/hipchat/guide/installation-flow
   addon.on('installed', function (clientKey, clientInfo, req) {
-    hipchat.sendMessage(clientInfo, req.body.roomId, 'The ' + addon.descriptor.name + ' add-on has been installed in this room');
+    hipchat.sendMessage(clientInfo, req.body.roomId, 'The ' + addon.descriptor.name + ' is in this room. Say "/timer hello @world on=13:00" to use it.');
   });
 
   // Clean up clients when uninstalled
