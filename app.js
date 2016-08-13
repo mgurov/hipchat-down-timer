@@ -73,6 +73,9 @@ if (devEnv) app.use(errorHandler());
 // Wire up your routes using the express and `atlassian-connect-express` objects
 routes(app, addon);
 
+require('./bin/worker.js').start();
+require('./bin/clock.js');
+
 // Boot the damn thing
 http.createServer(app).listen(port, function(){
   console.log()
