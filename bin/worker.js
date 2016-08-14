@@ -1,7 +1,8 @@
 
 var Repository = require('../lib/repository.js');
 
-module.exports.start = function (hipchat) {
+module.exports.start = function (addon) {
+  var hipchat = hipchatFromAddon(addon);
   Repository.onProcessingRequest(function (command) {
     hipchat.sendMessage.apply(hipchat, command.args)
       .then(function () { console.log('message sent OK'); }, function () { console.log('ERR sending message', arguments); });
@@ -52,7 +53,9 @@ function makeHipChat() {
 
   // Load the HipChat AC compat layer
   var ac_hipchat = require('atlassian-connect-express-hipchat')(addon, app);
-  var hipchat = require('../lib/hipchat')(addon);
+  hipchatFromAddon(addon);
+}
 
-
+function hipchatFromAddon(addon) {
+  return require('../lib/hipchat')(addon);
 }
