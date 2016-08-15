@@ -22,10 +22,10 @@
                 <img src="http://abotars.hipch.at/bot/{{key}}.png" alt="{{name}}">
 
                 <div>
-                  <a href="https://www.hipchat.com/addons/install?url={{links.self}}" class="aui-button aui-button-primary"
-                     title="Install this add-on in HipChat"><span
+                  <a href="https://www.hipchat.com/addons/install?url={{links.self}}{{#if debug}}&room=1542839{{/if}}" class="aui-button aui-button-primary"
+                     title="Install this add-on in HipChat" {{#if debug}}target="_blank"{{/if}}><span
                       class="aui-icon aui-icon-small aui-iconfont-hipchat"></span>
-                    Add to HipChat</a>
+                    Add to HipChat {{#if debug}}debug{{/if}}</a>
                 </div>
               </div>
               <div class="aui-item">

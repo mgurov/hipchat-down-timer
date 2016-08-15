@@ -4,7 +4,8 @@ var uuid = require('uuid');
 var url = require('url');
 var cmdParser = require('../lib/cmdParser.js');
 var moment = require('moment-timezone');
-var Repository = require('../lib/repository.js')
+var Repository = require('../lib/repository.js');
+var _ = require('lodash');
 var status = {
   startup: new Date()
 };
@@ -13,6 +14,8 @@ var status = {
 // take a look at https://developer.atlassian.com/hipchat/tutorials/getting-started-with-atlassian-connect-express-node-js
 module.exports = function (app, addon) {
   var hipchat = require('../lib/hipchat')(addon);
+  var descriptor = _.cloneDeep(addon.descriptor);
+  descriptor.debug = app.get('env') === 'development'; 
 
   // simple healthcheck
   app.get('/healthcheck', function (req, res) {
@@ -31,11 +34,11 @@ module.exports = function (app, addon) {
       res.format({
         // If the request content-type is text-html, it will decide which to serve up
         'text/html': function () {
-          var homepage = url.parse(addon.descriptor.links.homepage);
+          var homepage = url.parse(descriptor.links.homepage);
           if (homepage.hostname === req.hostname && homepage.path === req.path) {
-            res.render('homepage', addon.descriptor);
+            res.render('homepage', descriptor);
           } else {
-            res.redirect(addon.descriptor.links.homepage);
+            res.redirect(descriptor.links.homepage);
           }
         },
         // This logic is here to make sure that the `addon.json` is always
@@ -204,7 +207,7 @@ module.exports = function (app, addon) {
   // Connect's install flow, check out:
   // https://developer.atlassian.com/hipchat/guide/installation-flow
   addon.on('installed', function (clientKey, clientInfo, req) {
-    hipchat.sendMessage(clientInfo, req.body.roomId, 'The ' + addon.descriptor.name + ' is in this room. Say "/timer hello @world on=13:00" to use it.');
+    hipchat.sendMessage(clientInfo, req.body.roomId, 'The ' + descriptor.name + ' is in this room. Say "/timer hello @world on=13:00" to use it.');
   });
 
   // Clean up clients when uninstalled
