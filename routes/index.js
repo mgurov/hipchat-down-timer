@@ -168,7 +168,10 @@ module.exports = function (app, addon) {
       console.log(cmd);
 
       if (cmd.error) {
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, cmd.error, { format: 'text', color: 'red', notify: false });
+        hipchat.sendMessage(req.clientInfo, req.identity.roomId, cmd.error, { format: 'text', color: 'red', notify: false })
+        .then(function (data) {
+                res.sendStatus(200);
+              });
       } else {
         var timerText = cmd.text;
 
@@ -177,7 +180,7 @@ module.exports = function (app, addon) {
             args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
             timestamp: cmd.executionTime.getTime()
           }
-        ).then(function () { return null; }, function (err) { return err; })
+        ).then(function () { console.log('returning ok'); return null; }, function (err) { console.log('returning err'); return err; })
           .then(
           function (err) {
             //TODO err callback and response
