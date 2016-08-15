@@ -35,6 +35,18 @@
       "authentication": "jwt"
     },
     "glance": [
+      {
+        "name": {
+          "value": "Count-downs"
+        },
+        "queryUrl": "{{localBaseUrl}}/glance",
+        "key": "down-time.glance",
+        "target": "down-time.sidebar",
+        "icon": {
+          "url": "{{localBaseUrl}}/img/logo.png",
+          "url@2x": "{{localBaseUrl}}/img/logo.png"
+        }
+      }
     ],
     "webPanel": [
     ],

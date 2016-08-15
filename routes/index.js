@@ -64,20 +64,21 @@ module.exports = function (app, addon) {
 
   // This is an example glance that shows in the sidebar
   // https://developer.atlassian.com/hipchat/guide/glances
-  app.get('/no-glance',
+  app.get('/glance',
     cors(),
     addon.authenticate(),
     function (req, res) {
+      console.log('request for glance');
       res.json({
         "label": {
           "type": "html",
-          "value": "Hello World!"
+          "value": "Counters count"
         },
         "status": {
           "type": "lozenge",
           "value": {
-            "label": "NEW",
-            "type": "error"
+            "label": "10",
+            "type": "new"
           }
         }
       });
