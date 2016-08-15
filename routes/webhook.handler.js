@@ -5,7 +5,7 @@ var Repository = require('../lib/repository.js');
 
 module.exports = function (hipchat) {
 
-  function processCmd(cmd) {
+  function processCmd(cmd, req) {
     console.log(cmd);
 
     if (cmd.error) {
@@ -18,12 +18,12 @@ module.exports = function (hipchat) {
           args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
           timestamp: cmd.executionTime.getTime()
         }
-      ).then(function () { console.log('returning ok'); return null; }, function (err) { console.log('returning err'); return err; })
+      ).then(null, function (err) { return {err: err}; })
         .then(
-        function (err) {
+        function (result) {
           //TODO err callback and response
-          var text = !!err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
-          var color = !!err ? "red" : "green";
+          var text = !!result.err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
+          var color = !!result.err ? "red" : "green";
           return hipchat.sendMessage(req.clientInfo, req.identity.roomId, text, { format: 'text', color: color, notify: false });
         });
     }
@@ -31,7 +31,7 @@ module.exports = function (hipchat) {
 
   return function handler(req, res) {
     var cmd = cmdParser.parseTimerCommand(req.body.item.message.message);
-    processCmd(cmd)
+    processCmd(cmd, req)
       .then(function () { res.sendStatus(200); });
   }
 } 
