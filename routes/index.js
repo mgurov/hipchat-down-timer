@@ -2,9 +2,6 @@ var http = require('request');
 var cors = require('cors');
 var uuid = require('uuid');
 var url = require('url');
-var cmdParser = require('../lib/cmdParser.js');
-var moment = require('moment-timezone');
-var Repository = require('../lib/repository.js');
 var _ = require('lodash');
 var status = {
   startup: new Date()
@@ -160,49 +157,8 @@ module.exports = function (app, addon) {
   // https://developer.atlassian.com/hipchat/guide/webhooks
   app.post('/webhook',
     addon.authenticate(),
-    function (req, res) {
-      var cmd = cmdParser.parseTimerCommand(req.body.item.message.message);
-
-      console.log(cmd);
-
-      if (cmd.error) {
-        hipchat.sendMessage(req.clientInfo, req.identity.roomId, cmd.error, { format: 'text', color: 'red', notify: false })
-        .then(function (data) {
-                res.sendStatus(200);
-              });
-      } else {
-        var timerText = cmd.text;
-
-        Repository.persistTimer(
-          {
-            args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
-            timestamp: cmd.executionTime.getTime()
-          }
-        ).then(function () { console.log('returning ok'); return null; }, function (err) { console.log('returning err'); return err; })
-          .then(
-          function (err) {
-            //TODO err callback and response
-            var text = !!err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
-            var color = !!err ? "red" : "green";
-
-            hipchat.sendMessage(req.clientInfo, req.identity.roomId, text, { format: 'text', color: color, notify: false })
-              .then(function (data) {
-                res.sendStatus(200);
-              });
-          }, function (err) {
-            var text = !!err ? "Error" : "OK " + moment(cmd.executionTime).tz('Europe/Amsterdam').format('HH:mm');
-            var color = !!err ? "red" : "green";
-
-            hipchat.sendMessage(req.clientInfo, req.identity.roomId, text, { format: 'text', color: color, notify: false })
-              .then(function (data) {
-                res.sendStatus(200);
-              });
-          }
-
-          );
-      }
-
-    });
+    require('./webhook.handler.js')(hipchat)
+  );
 
   // Notify the room that the add-on was installed. To learn more about
   // Connect's install flow, check out:
