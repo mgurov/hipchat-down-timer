@@ -161,8 +161,6 @@ module.exports = function (app, addon) {
   app.post('/webhook',
     addon.authenticate(),
     function (req, res) {
-      //console.log('webhook', req.body);
-      //console.log('webhook cmd', req.body.item.message.message);
       var cmd = cmdParser.parseTimerCommand(req.body.item.message.message);
 
       console.log(cmd);
