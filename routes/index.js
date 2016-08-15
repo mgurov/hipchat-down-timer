@@ -80,7 +80,7 @@ module.exports = function (app, addon) {
         "status": {
           "type": "lozenge",
           "value": {
-            "label": "10",
+            "label": "9",
             "type": "new"
           }
         }
