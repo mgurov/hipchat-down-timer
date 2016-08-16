@@ -36,7 +36,8 @@ module.exports = function (hipchat) {
   }
 
   function formatExecutionTime(executionTime) {
-    return  moment(executionTime).tz('Europe/Amsterdam').format('HH:mm');
+    var mmt = moment(executionTime);
+    return mmt.tz('Europe/Amsterdam').format('HH:mm') + ', ' + mmt.fromNow();
   }
 
   return function handler(req) {
