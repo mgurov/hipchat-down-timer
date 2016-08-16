@@ -15,7 +15,7 @@ module.exports = function (hipchat) {
 
       return Repository.persistTimer(
         {
-          args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'green', notify: true }],
+          args: [req.clientInfo, req.identity.roomId, timerText, { format: 'text', color: 'grey', notify: true }],
           timestamp: cmd.executionTime.getTime()
         }
       ).then(null, function (err) { return {err: err}; })

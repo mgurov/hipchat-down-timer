@@ -12,7 +12,10 @@ var status = {
 module.exports = function (app, addon) {
   var hipchat = require('../lib/hipchat')(addon);
   var descriptor = _.cloneDeep(addon.descriptor);
-  descriptor.debug = app.get('env') === 'development'; 
+  descriptor.debug = app.get('env') === 'development';
+  if (!descriptor.debug) {
+    descriptor.capabilities.glance = [];
+  } 
 
   // simple healthcheck
   app.get('/healthcheck', function (req, res) {
@@ -46,6 +49,10 @@ module.exports = function (app, addon) {
       });
     }
   );
+
+  app.get('/atlassian-connect.json', function(req, res){
+    res.json(descriptor);
+  });
 
   // This is an example route that's used by the default for the configuration page
   // https://developer.atlassian.com/hipchat/guide/configuration-page
