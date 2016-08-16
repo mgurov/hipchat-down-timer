@@ -1,7 +1,7 @@
 var moment = require('moment-timezone');
 var cmdParser = require('../lib/cmdParser.js');
 var Repository = require('../lib/repository.js');
-
+var _ = require('lodash');
 
 module.exports = function (hipchat) {
 
@@ -47,7 +47,7 @@ module.exports = function (hipchat) {
       console.log('request listing');
       Repository.fetchRoomTimers(req.identity.roomId).then(
         function(timers) {
-          var message = timers.map(function(t) {return formatExecutionTime(t.timestamp);}).join('\n');
+          var message = _.chain(timers).map('timestamp').sortBy().map(formatExecutionTime).value().join('\n');
           hipchat.sendMessage(req.clientInfo, req.identity.roomId, message, { format: 'text', color: 'green', notify: false })
             .then(null, logError('ERR sending list of rooms'));
         },
