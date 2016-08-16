@@ -6,7 +6,7 @@ module.exports.start = function (addon) {
   Repository.onProcessingRequest(function (command) {
     console.log('processing', command);
     hipchat.sendMessage.apply(hipchat, command.args)
-      .then(function () { console.log('message sent OK'); }, function () { console.log('ERR sending message', arguments); });
+      .then(function () { console.log('message sent OK'); }, function (err) { console.log('ERR sending message', err); });
   });
 }
 
