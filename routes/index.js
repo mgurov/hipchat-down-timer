@@ -160,11 +160,16 @@ module.exports = function (app, addon) {
     }
   );
 
+  var webhookHandler = require('./webhook.handler.js')(hipchat);
+
   // This is an example route to handle an incoming webhook
   // https://developer.atlassian.com/hipchat/guide/webhooks
   app.post('/webhook',
     addon.authenticate(),
-    require('./webhook.handler.js')(hipchat)
+    function(req, res) {
+      webhookHandler(req);
+      res.sendStatus(200);
+    }
   );
 
   // Notify the room that the add-on was installed. To learn more about
